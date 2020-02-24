@@ -95,7 +95,7 @@ op\_unnormal\_income\_punish.py，拆分成两个单独的脚本：Excel\_split\
 
 (1) 重构部分底层代码，减少代码的冗余
 
-# <font size=4>版本V1.3.1：</font>**
+# <font size=4>版本V1.3.1：</font>
 
 **一. 修复部分：**
 
