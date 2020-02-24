@@ -5,6 +5,7 @@
 (2) 剔除的字段：首次出车时间、首次完单时间、IPH、TPH、OIPH、单均实际接驾里程、指定时段在线时长
 
 **二. 涉及到脚本&&脚本说明：**
+
 (1) 文件涉及到的内容：执行Python脚本、配置文件ini，租赁公司邮箱list
 
 (2) Python脚本：op_mysql（对mysql的读写筛选）、op_excel（对excel的读写筛选）、op_read_config(读取配置文件ini中间的内容),op_text(对txt读取文本列表）、op_driver_income_report_d.py（对mysql数据表拆分）、send_mail_company（通过邮件将拆分好的数据进行分发）
