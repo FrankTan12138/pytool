@@ -13,7 +13,6 @@
 from op_read_config import read_config  #读取配置文件
 from op_text import read_txt   #读取list表单
 from op_excel import read_excel,data_filter,write_excel,read_sheet_name,add_sheet
-from op_send_mail import send_mail
 import traceback,sys,os
 import time
 
@@ -30,19 +29,18 @@ if __name__ == '__main__':
         sheet_name=read_sheet_name(para_name['base']['input_path'], para_name['base']['file_name'])     #原Excel的sheet名称list
         sheet_cnt=len(para_name['base']['sheet_no'].split(","))   #需要拆分的sheet数量
         print("=====================\n开始进行操作，操作过程会持续一段时间，请稍后.....")
+        #拆分数据
         for write_filenames in read_txt(os_path,str(para_name['condition']['list_name'])+".txt"):
             write_filename=write_filenames.split("\t")[0]
-            data_info=read_excel(para_name['base']['input_path'], para_name['base']['file_name'],para_name['base']['sheet_no'].split(",")[0],para_name['base']['title_no'],para_name['base']['order_list'])  #读取excel数据
-            data_result=data_filter(os_path,config_file,data_info,para_name['base']['title_no'],len(data_info),write_filename,"0")  #数据筛选
-            write_excel(para_name['base']['output_path'],para_name['base']['output_file']+write_filename,sheet_name[int(para_name['base']['sheet_no'].split(",")[0])],para_name['base']['title_no'],data_result)
-        #如果多个sheet拆分，走循环    
-            if sheet_cnt >1:
-                for i in range(1,sheet_cnt):
-                    data_info=read_excel(para_name['base']['input_path'], para_name['base']['file_name'],para_name['base']['sheet_no'].split(",")[i],para_name['base']['title_no'],para_name['base']['order_list'])  #读取excel数据
+            for i in range(0,len(sheet_name)):
+                if i == 0 :
+                    data_info=read_excel(para_name['base']['input_path'], para_name['base']['file_name'],i,para_name['base']['title_no'],para_name['base']['order_list'])  #读取excel数据
+                    data_result=data_filter(os_path,config_file,data_info,para_name['base']['title_no'],len(data_info),write_filename,"0")  #数据筛选
+                    write_excel(para_name['base']['output_path'],para_name['base']['output_file']+write_filename,sheet_name[i],para_name['base']['title_no'],data_result)
+                else:
+                    data_info=read_excel(para_name['base']['input_path'], para_name['base']['file_name'],i,para_name['base']['title_no'],para_name['base']['order_list'])  #读取excel数据
                     data_result=data_filter(os_path,config_file,data_info,para_name['base']['title_no'],len(data_info),write_filename,i)  #数据筛选
-                    add_sheet(para_name['base']['output_path'],para_name['base']['output_file']+write_filename,sheet_name[int(para_name['base']['sheet_no'].split(",")[i])],para_name['base']['title_no'],data_result)  
-            else:
-                pass
+                    add_sheet(para_name['base']['output_path'],para_name['base']['output_file']+write_filename,sheet_name[int(i)],para_name['base']['title_no'],data_result)
         print("=====================\n操作结束，界面会在数秒后自动关闭...")
         time.sleep(3) #暂停3秒
         
