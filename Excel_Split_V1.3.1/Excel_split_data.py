@@ -27,7 +27,7 @@ if __name__ == '__main__':
         #根据列表清单对源表数据进行excel拆分
         print("文件名称：{}".format(para_name['base']['input_path']+para_name['base']['file_name']))
         sheet_name=read_sheet_name(para_name['base']['input_path'], para_name['base']['file_name'])     #原Excel的sheet名称list
-        sheet_cnt=len(para_name['base']['sheet_no'].split(","))   #需要拆分的sheet数量
+        sheet_cnt=len(para_name['base']['split_sheet_no'].split(","))   #需要拆分的sheet数量
         print("=====================\n开始进行操作，操作过程会持续一段时间，请稍后.....")
         #拆分数据
         for write_filenames in read_txt(os_path,str(para_name['condition']['list_name'])+".txt"):

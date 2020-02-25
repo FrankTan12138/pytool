@@ -71,6 +71,7 @@ def data_filter(os_path,config_file,data_info,start_num,end_num,filter_condition
                 filter_name=split_sheet[str(filter_name_num)]
                 if data_result[filter_name] == filter_condition:
                     data_result1[j]=data_result
+                    j=j+1
             else:
                 data_result1[j]=data_result
                 j=j+1
@@ -95,7 +96,7 @@ def write_excel(os_path,file_name,sheet_name,start_mun,insert_info):
     
 #增加sheet写入Excel
 def add_sheet(os_path,file_name,sheet_name,start_mun,insert_info):
-    wb=xlrd.open_workbook(os_path+file_name+".xlsx")
+    wb=xlrd.open_workbook(os_path+file_name+".xls")
     work_book = xl_copy(wb)
     sheet=work_book.add_sheet(sheet_name) #sheet名称
     #写入title数据
