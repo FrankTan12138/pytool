@@ -74,12 +74,12 @@ def data_filter(os_path,config_file,data_info,start_num,end_num,filter_condition
                     j=j+1
             else:
                 data_result1[j]=data_result
-                j=j+1
+                j=j+1   
     return(data_result1)
 
 
 
-#数据写入Excel
+#数据写入Excel-xls
 def write_excel(os_path,file_name,sheet_name,start_mun,insert_info):
     work_book=xlwt.Workbook(encoding='utf-8')
     sheet=work_book.add_sheet(sheet_name) #sheet名称
@@ -93,6 +93,21 @@ def write_excel(os_path,file_name,sheet_name,start_mun,insert_info):
     work_book.save(os_path+file_name+".xls")
     print("数据写入Excel-{}：sheet-{},执行完成!~".format(file_name,sheet_name))
     
+    
+#数据写入Excel-将数据写入xlsx
+def write_excel_xlsx(os_path,file_name,sheet_name,start_mun,insert_info):  
+    wb=openpyxl.Workbook()  #创建xlsx
+    sheet =wb.get_active_sheet()  #打开刚创建的工作簿
+    sheet.title=sheet_name  #修改sheet_name
+    #写入title数据
+    for i in range(int(start_mun)-1,len(insert_info[0])):
+        sheet.cell(row=1,column=i+1).value=insert_info[0][i]
+    #写入数据
+        for j in range(int(start_mun),len(insert_info)):
+            sheet.cell(row=j+1,column=i+1).value=insert_info[j][insert_info[0][i]]   
+    #数据保存到excel   
+    wb.save(os_path+file_name+".xlsx")
+    print("数据写入Excel-{}：sheet-{},执行完成!~".format(file_name,sheet_name))
     
 #增加sheet写入Excel
 def add_sheet(os_path,file_name,sheet_name,start_mun,insert_info):
@@ -152,7 +167,6 @@ def excel_catch_screen(os_path,file_name, sheet_name, screen_area,picture_name):
     #拆分截频区域和图片名称
     screen_area=screen_area.split(",")
     picture_name=picture_name.split(",")
-    
 
     #循环处理每个截图区域
     for i in range (0,len(screen_area)):
@@ -185,7 +199,7 @@ def excel_catch_screen_xlwings(os_path,file_name, sheet_name, screen_area,pictur
         cell_data=sheet[screen_area[i]]
         cell_data.api.CopyPicture()                   # 复制图片区域      
         sheet.api.Paste()                       # 粘贴
-        time.sleep(2)
+        time.sleep(3)
         pic=sheet.pictures[i]                #当前图片
         pic.api.Copy()                          #复制图片
         img = ImageGrab.grabclipboard()         # 获取剪贴板的图片数据
