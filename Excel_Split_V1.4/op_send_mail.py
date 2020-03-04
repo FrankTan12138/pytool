@@ -18,9 +18,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
-import os
-import traceback
-import sys
+from win32com.client.gencache import EnsureDispatch as Dispatch
+import os,traceback,sys
 
 
 
@@ -117,8 +116,63 @@ def send_mail(host_server,host_port,username,password,sender,receiver,cc,mail_ti
                 
         smtp.sendmail(sender,receiver_all,msg.as_string())  #发送邮件
         smtp.quit()
-        print('发送成功!')
+        print('执行发送结果：Success!~')
     except:
-        print('发送失败!')
+        print('执行发送结果：Fail!~')
         traceback.print_exc()
+        
+#下载附件并且返回邮件信息 
+def save_attachments(One_Folder,Two_Folder,Title,Attachment_File,Local_Path):
+#调用windows api接口    
+    outlook = Dispatch("Outlook.Application")
+    mapi = outlook.GetNamespace("MAPI")
+    Accounts = mapi.Folders
+    
+    try:       
+        for Account in Accounts :
+            Folders = Account.Folders
+            for First_Folder in Folders:
+                if First_Folder.Name == One_Folder:
+                    Second_Folder=First_Folder.Folders
+                    for Target_Folder in Second_Folder:
+                        if Target_Folder.Name == Two_Folder :
+                            Item=Target_Folder.Items
+                            for email_name in Item:
+                                if Title != "" :
+                                    if email_name.Subject == Title:
+                                        file1=[]  #初始化
+                                        for i in range(1,len(email_name.Attachments)+1): 
+                                            if Attachment_File == "":
+                                                file1.append(email_name.Attachments.Item(i).FileName) #list输出
+                                                mail_info={
+                                                        'subject' : email_name.Subject.split(";"),
+                                                        'sender'  : email_name.SenderName.split(";"),
+                                                        'receiver': email_name.To.split(";"),
+                                                        'cc'      : email_name.CC.split(";"),
+                                                        'content' : email_name.Body.replace('\n', '').replace('\r', '').split(";"),
+                                                        'file'    : email_name.Attachments.Item(i).FileName.split(";"),
+                                                        'receivedTime' : str(email_name.ReceivedTime).split(";")
+                                                        }
+                                            elif email_name.Attachments.Item(i).FileName == Attachment_File:
+                                                email_name.Attachments.Item(i).SaveAsFile(os.path.join(Local_Path,email_name.Attachments.Item(i).FileName)) #下载附件
+                                                mail_info={
+                                                        'subject' : email_name.Subject.split(";"),
+                                                        'sender'  : email_name.SenderName.split(";"),
+                                                        'receiver': email_name.To.split(";"),
+                                                        'cc'      : email_name.CC.split(";"),
+                                                        'content' : email_name.Body.replace('\n', '').replace('\r', '').split(";"),
+                                                        'file'    : email_name.Attachments.Item(i).FileName.split(";"),
+                                                        'receivedTime' : str(email_name.ReceivedTime).split(";")
+                                                        }
+                                                break
+                                            else:
+                                                continue
+                                            email_name.Attachments.Item(i).SaveAsFile(os.path.join(Local_Path,email_name.Attachments.Item(i).FileName)) #下载附件
+                                            mail_info['file']=file1 #所有附件                                       
+                                else:
+                                    return("邮件title不能为空！~")  
+        return(mail_info)                                              
+    except:
+        traceback.print_exc()
+        sys.exit()
                 
