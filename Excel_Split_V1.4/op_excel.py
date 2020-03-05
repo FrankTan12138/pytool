@@ -155,6 +155,16 @@ def add_sheet_xlsx_transfrom(os_path,file_name,sheet_name,start_mun,insert_info)
     print("数据写入Excel-{}：sheet-{},执行完成!~".format(file_name,sheet_name))   
 
 
+#删除excel中sheet
+def remove_sheet(os_path,file_name,sheet_name):
+    wb = openpyxl.load_workbook(os_path+file_name)
+    ws=wb[sheet_name]
+    wb.remove(ws)
+    wb.save(os_path+file_name)
+    wb.close()
+    print("删除Excel-{}：sheet-{},执行完成！~".format(file_name,sheet_name))
+    
+    
 #对Excel数据表格截屏-win32
 def excel_catch_screen(os_path,file_name, sheet_name, screen_area,picture_name):
     excel = DispatchEx("Excel.Application")  #启动excel
