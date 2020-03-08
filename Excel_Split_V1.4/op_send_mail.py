@@ -121,58 +121,83 @@ def send_mail(host_server,host_port,username,password,sender,receiver,cc,mail_ti
         print('执行发送结果：Fail!~')
         traceback.print_exc()
         
-#下载附件并且返回邮件信息 
-def save_attachments(One_Folder,Two_Folder,Title,Attachment_File,Local_Path):
-#调用windows api接口    
-    outlook = Dispatch("Outlook.Application")
-    mapi = outlook.GetNamespace("MAPI")
-    Accounts = mapi.Folders
+#邮件解析
+class explain_mail:
+#设定参数
+    def __init__(self,account_name,folder_name,mail_title,attachment_file,local_path):
+        self.mail_title=mail_title
+        self.attachment_file=attachment_file
+        self.local_path=local_path
+        self.folder_name=folder_name.split(",")
+        self.account_name=account_name
+        
+#解析邮件内容和下载附件       
+    def save_attachments(self,Folder):
+        Item=Folder.Items
+        for email_name in Item:                           
+            if email_name.Subject == self.mail_title:
+                file1=[]  #初始化
+                for i in range(1,len(email_name.Attachments)+1): 
+                    if self.attachment_file == "":
+                        file1.append(email_name.Attachments.Item(i).FileName) #list输出
+                        mail_info={
+                                'subject' : email_name.Subject.split(";"),
+                                'sender'  : email_name.SenderName.split(";"),
+                                'receiver': email_name.To.split(";"),
+                                'cc'      : email_name.CC.split(";"),
+                                'content' : email_name.Body.replace('\n', '').replace('\r', '').split(";"),
+                                'file'    : email_name.Attachments.Item(i).FileName.split(";"),
+                                'receivedTime' : str(email_name.ReceivedTime).split(";")
+                                }
+                    elif email_name.Attachments.Item(i).FileName == self.attachment_file:
+                        email_name.Attachments.Item(i).SaveAsFile(os.path.join(self.local_path,email_name.Attachments.Item(i).FileName)) #下载附件
+                        mail_info={
+                                'subject' : email_name.Subject.split(";"),
+                                'sender'  : email_name.SenderName.split(";"),
+                                'receiver': email_name.To.split(";"),
+                                'cc'      : email_name.CC.split(";"),
+                                'content' : email_name.Body.replace('\n', '').replace('\r', '').split(";"),
+                                'file'    : email_name.Attachments.Item(i).FileName.split(";"),
+                                'receivedTime' : str(email_name.ReceivedTime).split(";")
+                                }
+                        break
+                    else:
+                        continue
+                    email_name.Attachments.Item(i).SaveAsFile(os.path.join(self.local_path,email_name.Attachments.Item(i).FileName)) #下载附件
+                    mail_info['file']=file1 #所有附件
+        return(mail_info)   
+            
     
-    try:       
-        for Account in Accounts :
-            Folders = Account.Folders
-            for First_Folder in Folders:
-                if First_Folder.Name == One_Folder:
-                    Second_Folder=First_Folder.Folders
-                    for Target_Folder in Second_Folder:
-                        if Target_Folder.Name == Two_Folder :
-                            Item=Target_Folder.Items
-                            for email_name in Item:
-                                if Title != "" :
-                                    if email_name.Subject == Title:
-                                        file1=[]  #初始化
-                                        for i in range(1,len(email_name.Attachments)+1): 
-                                            if Attachment_File == "":
-                                                file1.append(email_name.Attachments.Item(i).FileName) #list输出
-                                                mail_info={
-                                                        'subject' : email_name.Subject.split(";"),
-                                                        'sender'  : email_name.SenderName.split(";"),
-                                                        'receiver': email_name.To.split(";"),
-                                                        'cc'      : email_name.CC.split(";"),
-                                                        'content' : email_name.Body.replace('\n', '').replace('\r', '').split(";"),
-                                                        'file'    : email_name.Attachments.Item(i).FileName.split(";"),
-                                                        'receivedTime' : str(email_name.ReceivedTime).split(";")
-                                                        }
-                                            elif email_name.Attachments.Item(i).FileName == Attachment_File:
-                                                email_name.Attachments.Item(i).SaveAsFile(os.path.join(Local_Path,email_name.Attachments.Item(i).FileName)) #下载附件
-                                                mail_info={
-                                                        'subject' : email_name.Subject.split(";"),
-                                                        'sender'  : email_name.SenderName.split(";"),
-                                                        'receiver': email_name.To.split(";"),
-                                                        'cc'      : email_name.CC.split(";"),
-                                                        'content' : email_name.Body.replace('\n', '').replace('\r', '').split(";"),
-                                                        'file'    : email_name.Attachments.Item(i).FileName.split(";"),
-                                                        'receivedTime' : str(email_name.ReceivedTime).split(";")
-                                                        }
-                                                break
-                                            else:
-                                                continue
-                                            email_name.Attachments.Item(i).SaveAsFile(os.path.join(Local_Path,email_name.Attachments.Item(i).FileName)) #下载附件
-                                            mail_info['file']=file1 #所有附件                                       
-                                else:
-                                    return("邮件title不能为空！~")  
-        return(mail_info)                                              
-    except:
-        traceback.print_exc()
-        sys.exit()
-                
+#调用windows的api接口,输出文件夹的接口
+    def call_api(self):
+        outlook = Dispatch("Outlook.Application")
+        mapi = outlook.GetNamespace("MAPI")
+        Accounts = mapi.Folders
+        
+        
+    #解析邮件内容
+        if self.mail_title != "" :
+            try:
+                for Account in Accounts :
+                    if Account.Name == self.account_name :
+                        Folders = Account.Folders  #读取该账户下的文件夹列表
+                        for Folder in Folders:    #第一层目录
+                            if len(self.folder_name[0]) == 0:  #输入文件夹为空
+                                if Folder.Name == "收件箱" :
+                                    mail_info=self.save_attachments(Folder)   #调用邮件解析和附件下载函数
+                            elif len(self.folder_name) == 1:
+                                if Folder.Name == self.folder_name[0] :
+                                    mail_info=self.save_attachments(Folder)   #调用邮件解析和附件下载函数
+                            else:
+                                if Folder.Name == self.folder_name[0]:                                                                    
+                                    for i in range(1,len(self.folder_name)) : 
+                                        for Folder2 in Folder.Folders:
+                                            if Folder2.Name == self.folder_name[i]:
+                                                Folder=Folder2 
+                                    mail_info=self.save_attachments(Folder)   #调用邮件解析和附件下载函数
+                return(mail_info)
+            except:
+                traceback.print_exc()
+                sys.exit()                                           
+        else:
+            return("邮件title不能为空！~") 
